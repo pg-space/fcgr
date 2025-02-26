@@ -24,7 +24,7 @@ FetchContent_MakeAvailable(cnpy)
 message(STATUS "KMC3 will be built from source")
 ExternalProject_Add(kmc
     GIT_REPOSITORY https://github.com/refresh-bio/KMC.git
-    GIT_TAG 003e5ca42490d8ef1cbecf6e9ee0b98db167bebc # v3.2.3
+    GIT_TAG d6c24dc88010508336d824bbffbf1ef3f49fddf8 # v3.2.4
     UPDATE_COMMAND ""
     BUILD_IN_SOURCE 1
     PATCH_COMMAND ""
