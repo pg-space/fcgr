@@ -15,8 +15,12 @@ cd ..
 For each of them, it outputs the FCGR in `.npy` format.
 
 ```
-./fcgr <in-kmc-list>
+./fcgr [-m MASK] <in-kmc-list>
 ```
+
+`MASK` is a bit string indicating which bases of a kmer to keep. For instance, if `MASK=10011` and kmer is `AACGT`, kmer `AGT` will be stored in the FCGR. By default it's a k-long string of 1s.
+
+**Note:** if input kmers are in canonical form, masked kmers won't be in canonical form anymore.
 
 ### Example
 ```
