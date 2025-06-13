@@ -3,8 +3,9 @@ cmake_minimum_required(VERSION 3.14)
 include(ExternalProject)
 include(FetchContent)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 project(fcgr VERSION 1.0.0)
 add_executable(fcgr main.cpp) 

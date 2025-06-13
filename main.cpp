@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <ctime>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -84,12 +85,20 @@ uint64_t apply_mask(const uint64_t &kmer, const std::string &mask) {
 int main(int argc, char *argv[]) {
   // CLI
   int c;
-  std::string mask = "";
+  std::string mask = "";     // mask to use
+  std::string out_dir = "."; // where to store all .npy
+  bool with_mask = false;    // add mask to output file names
   opterr = 0;
-  while ((c = getopt(argc, argv, "m:h")) != -1) {
+  while ((c = getopt(argc, argv, "m:o:ph")) != -1) {
     switch (c) {
     case 'm':
       mask = optarg;
+      break;
+    case 'o':
+      out_dir = optarg;
+      break;
+    case 'p':
+      with_mask = true;
       break;
     case 'h':
       std::cerr << USAGE_MESSAGE << std::endl;
@@ -99,6 +108,8 @@ int main(int argc, char *argv[]) {
       exit(EXIT_FAILURE);
     }
   }
+  if (mask == "")
+    with_mask = false;
   if (argc - optind < 1) {
     std::cerr << USAGE_MESSAGE << std::endl;
     exit(EXIT_FAILURE);
@@ -148,6 +159,7 @@ int main(int argc, char *argv[]) {
   std::cerr << "Building index for k=" << klen << ". Mask: " << mask
             << ". Masked k=" << masked_klen << std::endl;
 
+  // Init FCGR
   uint32_t fcgr_l = (1 << 2 * masked_klen); // total size of FCGR
   uint32_t hl = (1 << masked_klen);         // number of rows/columns
   std::vector<uint64_t> index(
@@ -157,9 +169,11 @@ int main(int argc, char *argv[]) {
   uint64_t masked_kmer;
   std::vector<uint32_t> output(fcgr_l); // FCGR
 
+  // Iterate over KMC databases
   CKmerAPI kmer_obj(klen);
   std::vector<uint64_t> kmer_l;
   infile.open(fpaths);
+  std::filesystem::create_directories(out_dir);
   while (getline(infile, line)) {
     // Clear FCGR
     for (uint32_t i = 0; i < fcgr_l; ++i)
@@ -181,7 +195,10 @@ int main(int argc, char *argv[]) {
       **/
       output[index[masked_kmer]] += counter;
     }
-    cnpy::npy_save(line + ".npy", &output[0], {hl, hl}, "w");
+    std::string out_fn = out_dir + "/" +
+                         std::filesystem::path(line).filename().string() +
+                         (with_mask ? "." + mask : "") + ".npy";
+    cnpy::npy_save(out_fn, &output[0], {hl, hl}, "w");
     std::fill(output.begin(), output.end(), 0);
     kmer_db.Close();
   }
