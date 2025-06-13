@@ -16,6 +16,8 @@ static const char *const USAGE_MESSAGE =
     "Usage: fcgr [-m MASK] <in-kmc-list>\n"
     "Options:\n"
     "        -m MASK       use this mask (default: 1{k})\n"
+    "        -o DIR        store output(s) in this directory (default: ./)\n"
+    "        -p            add mask to output filenames (default: false)\n"
     "        -h            display this help and exit\n";
 
 /**
