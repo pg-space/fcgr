@@ -219,24 +219,24 @@ int main_kmc(int argc, char *argv[]) {
 int main_fa(int argc, char *argv[]) {
   // CLI
   int c;
-  int klen = 7;
+  uint8_t klen = 7;
+  int n = -1;                // how many entries to consider from FASTA file
   std::string mask = "";     // mask to use
   std::string out_dir = "."; // where to store all .npy
-  bool with_mask = false;    // add mask to output file names
   opterr = 0;
-  while ((c = getopt(argc, argv, "m:o:ph")) != -1) {
+  while ((c = getopt(argc, argv, "k:n:m:o:h")) != -1) {
     switch (c) {
     case 'k':
-      mask = std::stoi(optarg);
+      klen = std::stoi(optarg);
+      break;
+    case 'n':
+      n = std::stoi(optarg);
       break;
     case 'm':
       mask = optarg;
       break;
     case 'o':
       out_dir = optarg;
-      break;
-    case 'p':
-      with_mask = true;
       break;
     case 'h':
       // std::cerr << USAGE_MESSAGE << std::endl;
@@ -246,8 +246,7 @@ int main_fa(int argc, char *argv[]) {
       exit(EXIT_FAILURE);
     }
   }
-  if (mask == "")
-    with_mask = false;
+
   if (argc - optind < 1) {
     std::cerr << USAGE_MESSAGE << std::endl;
     exit(EXIT_FAILURE);
@@ -260,7 +259,9 @@ int main_fa(int argc, char *argv[]) {
   }
 
   // Check mask
+  bool with_mask = true; // add mask to output file names
   if (mask.compare("") == 0) {
+    with_mask = false;
     mask = std::string(klen, '1');
   } else {
     if (mask.size() != klen) {
@@ -294,8 +295,10 @@ int main_fa(int argc, char *argv[]) {
   gzFile fp = gzopen(fa_fn, "r");
   kseq_t *seq = kseq_init(fp);
   int l;
-
+  int ee = 0;
   while ((l = kseq_read(seq)) >= 0) {
+    if (n != -1 && ee == n)
+      break;
     size_t pos = 0;        // current position
     char kmer[klen + 1];   // first kmer on sequence (plain)
     uint64_t kmer_d = 0;   // kmer
@@ -330,6 +333,8 @@ int main_fa(int argc, char *argv[]) {
         (with_mask ? "." + mask : "") + ".npy";
     cnpy::npy_save(out_fn, &output[0], {hl, hl}, "w");
     std::fill(output.begin(), output.end(), 0);
+
+    ++ee;
   }
   kseq_destroy(seq);
   gzclose(fp);
