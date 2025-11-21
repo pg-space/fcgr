@@ -299,18 +299,19 @@ int main_fa(int argc, char *argv[]) {
   while ((l = kseq_read(seq)) >= 0) {
     if (n != -1 && ee == n)
       break;
-    size_t pos = 0;        // current position
-    char kmer[klen + 1];   // first kmer on sequence (plain)
-    uint64_t kmer_d = 0;   // kmer
-    uint64_t rckmer_d = 0; // reverse and complemented kmer
-    uint64_t ckmer_d = 0;  // canonical kmer
-    uint8_t c;             // new character to append
+    size_t pos = 0;      // current position
+    char kmer[klen + 1]; // first kmer on sequence (plain)
+    uint64_t kmer_d = 0; // kmer
+    // uint64_t rckmer_d = 0; // reverse and complemented kmer
+    uint64_t ckmer_d = 0; // canonical kmer
+    uint8_t c;            // new character to append
 
     // first kmer
     strncpy(kmer, seq->seq.s, klen);
     kmer_d = k2d(kmer, klen);
-    rckmer_d = rc(kmer_d, klen);
-    ckmer_d = std::min(kmer_d, rckmer_d);
+    // rckmer_d = rc(kmer_d, klen);
+    // ckmer_d = std::min(kmer_d, rckmer_d);
+    ckmer_d = kmer_d;
 
     masked_kmer = apply_mask(ckmer_d, mask);
     output[index[masked_kmer]] += 1;
@@ -320,8 +321,9 @@ int main_fa(int argc, char *argv[]) {
     for (; pos < seq->seq.l - klen + 1; ++pos) {
       c = to_int[(uint8_t)seq->seq.s[pos]];
       kmer_d = lsappend(kmer_d, c, klen);
-      rckmer_d = rsprepend(rckmer_d, reverse_char(c), klen);
-      ckmer_d = std::min(kmer_d, rckmer_d);
+      // rckmer_d = rsprepend(rckmer_d, reverse_char(c), klen);
+      // ckmer_d = std::min(kmer_d, rckmer_d);
+      ckmer_d = kmer_d;
 
       masked_kmer = apply_mask(ckmer_d, mask);
       output[index[masked_kmer]] += 1;
