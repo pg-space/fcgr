@@ -1,0 +1,43 @@
+#include "kmer.h"
+
+uint8_t reverse_char(uint8_t c) { return ((~c) & 3); }
+
+void d23(uint64_t kmer, int k, char *kk) {
+  for (int i = 1; i <= k; ++i)
+    kk[i - 1] = ((kmer >> (k - i) * 2) & 3) + 1;
+  kk[k] = '\0';
+}
+
+void d2s(uint64_t kmer, int k, char *kk) {
+  for (int i = 1; i <= k; ++i)
+    kk[i - 1] = "ACGT"[(kmer >> (k - i) * 2) & 3];
+  kk[k] = '\0';
+}
+
+uint64_t k2d(const char *kmer, uint8_t k) {
+  uint64_t kmer_d = 0;
+  uint8_t x;
+  for (uint8_t i = 0; i < k; ++i) {
+    x = (kmer[i] < 6 ? kmer[i] : to_int[(uint8_t)kmer[i]]);
+    kmer_d = (kmer_d << 2) | (x < 4 ? x : rand() % 4);
+  }
+  return kmer_d;
+}
+
+uint64_t rc(uint64_t kmer, uint8_t k) {
+  uint64_t rckmer = 0;
+  kmer = ~kmer;
+  for (uint8_t i = 0; i < k; ++i) {
+    rckmer = (rckmer << 2) | (kmer & 3);
+    kmer >>= 2;
+  }
+  return rckmer;
+}
+
+uint64_t lsappend(uint64_t kmer, uint64_t c, uint8_t k) {
+  return ((kmer << 2) | c) & ((1UL << 2 * k) - 1);
+}
+
+uint64_t rsprepend(uint64_t kmer, uint64_t c, uint8_t k) {
+  return (kmer >> 2) | (c << (2 * k - 2));
+}
