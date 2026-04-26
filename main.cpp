@@ -16,16 +16,9 @@
 extern "C" {
 #include "kmer.h"
 }
+#include "usage.hpp"
 
 KSEQ_INIT(gzFile, gzread)
-
-static const char *const USAGE_MESSAGE =
-    "Usage: fcgr [-m MASK] <in-kmc-list>\n"
-    "Options:\n"
-    "        -m MASK       use this mask (default: 1{k})\n"
-    "        -o DIR        store output(s) in this directory (default: ./)\n"
-    "        -p            add mask to output filenames (default: false)\n"
-    "        -h            display this help and exit\n";
 
 /**
 // Just for debugging
@@ -91,7 +84,7 @@ uint64_t apply_mask(const uint64_t &kmer, const std::string &mask) {
   return masked;
 }
 
-int main_kmc(int argc, char *argv[]) {
+int main_single(int argc, char *argv[]) {
   // CLI
   int c;
   std::string mask = "";     // mask to use
@@ -110,17 +103,17 @@ int main_kmc(int argc, char *argv[]) {
       with_mask = true;
       break;
     case 'h':
-      std::cerr << USAGE_MESSAGE << std::endl;
+      std::cerr << SINGLE_USAGE_MESSAGE << std::endl;
       exit(EXIT_SUCCESS);
     default:
-      std::cerr << USAGE_MESSAGE << std::endl;
+      std::cerr << SINGLE_USAGE_MESSAGE << std::endl;
       exit(EXIT_FAILURE);
     }
   }
   if (mask == "")
     with_mask = false;
   if (argc - optind < 1) {
-    std::cerr << USAGE_MESSAGE << std::endl;
+    std::cerr << SINGLE_USAGE_MESSAGE << std::endl;
     exit(EXIT_FAILURE);
   }
   char *fpaths = argv[optind++];
@@ -216,7 +209,7 @@ int main_kmc(int argc, char *argv[]) {
   return 0;
 }
 
-int main_fa(int argc, char *argv[]) {
+int main_multi(int argc, char *argv[]) {
   // CLI
   int c;
   uint8_t klen = 7;
@@ -239,16 +232,16 @@ int main_fa(int argc, char *argv[]) {
       out_dir = optarg;
       break;
     case 'h':
-      // std::cerr << USAGE_MESSAGE << std::endl;
+      std::cerr << MULTI_USAGE_MESSAGE << std::endl;
       exit(EXIT_SUCCESS);
     default:
-      // std::cerr << USAGE_MESSAGE << std::endl;
+      std::cerr << MULTI_USAGE_MESSAGE << std::endl;
       exit(EXIT_FAILURE);
     }
   }
 
   if (argc - optind < 1) {
-    std::cerr << USAGE_MESSAGE << std::endl;
+    std::cerr << MULTI_USAGE_MESSAGE << std::endl;
     exit(EXIT_FAILURE);
   }
   char *fa_fn = argv[optind++];
@@ -274,7 +267,7 @@ int main_fa(int argc, char *argv[]) {
   for (const char &bit : mask)
     masked_klen += bit == '1';
 
-  std::cerr << "Building index for k=" << klen << ". Mask: " << mask
+  std::cerr << "Building index for k=" << (int)klen << ". Mask: " << mask
             << ". Masked k=" << masked_klen << std::endl;
 
   // Init FCGR
@@ -345,9 +338,16 @@ int main_fa(int argc, char *argv[]) {
 }
 
 int main(int argc, char *argv[]) {
-  if (strcmp(argv[1], "fa") == 0)
-    return main_fa(argc - 1, argv + 1);
-  else
-    return main_kmc(argc - 1, argv + 1);
-  return 1;
+  if (argc == 1) {
+    std::cerr << USAGE_MESSAGE << std::endl;
+    return 1;
+  }
+  if (strcmp(argv[1], "single") == 0)
+    return main_single(argc - 1, argv + 1);
+  else if (strcmp(argv[1], "multi") == 0)
+    return main_multi(argc - 1, argv + 1);
+  else {
+    std::cerr << USAGE_MESSAGE << std::endl;
+    return 1;
+  }
 }
